@@ -1,0 +1,515 @@
+/* SSCB Accounting System - Supabase Version */
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Ledger Input */
+.ledger-input {
+    height: 34px;
+    padding: 0 0.5rem;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #1e293b;
+    outline: none;
+}
+
+.ledger-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.ledger-input::placeholder {
+    color: #9ca3af;
+}
+
+/* Form Labels */
+.form-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+    letter-spacing: 0.025em;
+}
+
+/* Buttons */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    background: #f1f5f9;
+    border-radius: 0.375rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Navigation Buttons */
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    cursor: pointer;
+    text-align: left;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.nav-btn.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: white;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 100;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    overflow: hidden;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    color: white;
+}
+
+.modal-header h3 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modal-close {
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: white;
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toast {
+    min-width: 300px;
+    padding: 16px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1e293b;
+    border-left: 4px solid transparent;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+.toast-success {
+    border-left-color: #10b981;
+}
+
+.toast-success i {
+    color: #10b981;
+}
+
+.toast-warning {
+    border-left-color: #f59e0b;
+}
+
+.toast-warning i {
+    color: #f59e0b;
+}
+
+.toast-error {
+    border-left-color: #ef4444;
+}
+
+.toast-error i {
+    color: #ef4444;
+}
+
+/* Enhanced General UI */
+.ledger-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.btn-primary {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Table Refinements */
+thead th {
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+tr {
+    background-color: transparent;
+}
+
+td {
+    color: #334155;
+}
+
+/* Card Refinements */
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Action Buttons in Table */
+.action-btn {
+    padding: 0.25rem;
+    color: #cbd5e1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.25rem;
+}
+
+.action-btn:hover {
+    color: #6366f1;
+}
+
+.action-btn.delete:hover {
+    color: #ef4444;
+}
+
+/* Status Badges */
+.badge-paid {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #166534;
+    background: #dcfce7;
+    border-radius: 9999px;
+}
+
+.badge-pending {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #dc2626;
+    background: #fee2e2;
+    border-radius: 9999px;
+}
+
+.badge-self {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #0369a1;
+    background: #e0f2fe;
+    border-radius: 9999px;
+}
+
+.badge-others {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #b45309;
+    background: #fef3c7;
+    border-radius: 9999px;
+}
+
+/* Manage List Items */
+.manage-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border-radius: 0.375rem;
+    border: 1px solid #e2e8f0;
+}
+
+.manage-item-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #334155;
+}
+
+.manage-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.manage-item-actions button {
+    padding: 0.25rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+}
+
+.manage-item-actions button:hover {
+    color: #6366f1;
+}
+
+.manage-item-actions button.delete:hover {
+    color: #ef4444;
+}
+
+/* Sidebar Animation */
+#sidebar.open {
+    transform: translateX(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn-secondary span {
+        display: none;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+.actions-cell {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    min-width: 100px;
+}
+
+.list-container {
+    padding-bottom: 120px;
+}
+
+/* ==========================================
+   PRINT STYLES FOR PDF EXPORT
+   ========================================== */
+
+/* Hide elements during print */
+@media print {
+
+    /* Hide all UI except analysis content */
+    body.printing-analysis * {
+        visibility: hidden;
+    }
+
+    body.printing-analysis #analysis-modal,
+    body.printing-analysis #analysis-modal * {
+        visibility: visible;
+    }
+
+    body.printing-analysis #analysis-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: auto;
+        background: white;
+        overflow: visible;
+    }
+
+    body.printing-analysis .modal-overlay {
+        background: white !important;
+        padding: 0 !important;
+    }
+
+    body.printing-analysis .modal-content {
+        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    /* Hide modal header date controls and buttons */
+    body.printing-analysis .modal-header,
+    body.printing-analysis #analysis-modal .bg-gray-100,
+    body.printing-analysis #print-options-modal,
+    body.printing-analysis #toast-container,
+    body.printing-analysis header,
+    body.printing-analysis aside,
+    body.printing-analysis #sidebar-overlay {
+        display: none !important;
+    }
+
+    /* Show only the analysis content */
+    body.printing-analysis #analysis-content {
+        overflow: visible !important;
+        height: auto !important;
+        padding: 20px !important;
+    }
+
+    /* Print hidden sections */
+    body.printing-analysis .print-hidden {
+        display: none !important;
+    }
+
+    /* Clean up styling for print */
+    body.printing-analysis #analysis-content>div {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 15px !important;
+    }
+
+    /* Improve readability */
+    body.printing-analysis table {
+        font-size: 11px !important;
+    }
+
+    body.printing-analysis .text-3xl {
+        font-size: 24px !important;
+    }
+
+    body.printing-analysis .text-2xl {
+        font-size: 18px !important;
+    }
+
+    /* Remove shadows and borders for cleaner print */
+    body.printing-analysis .shadow-sm,
+    body.printing-analysis .shadow-lg {
+        box-shadow: none !important;
+    }
+
+    body.printing-analysis .rounded-xl,
+    body.printing-analysis .rounded-lg {
+        border-radius: 4px !important;
+    }
+
+    /* Force colors to print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+}

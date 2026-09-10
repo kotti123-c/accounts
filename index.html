@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-slate-800 antialiased min-h-screen">
+
+    <!-- Auth Section -->
+    <div id="auth-section"
+        class="fixed inset-0 z-50 bg-slate-200 flex flex-col items-center justify-center p-4 overflow-y-auto">
+
+        <div class="bg-white p-12 w-full max-w-md shadow-[0_0_50px_rgba(0,0,0,0.02)] border border-slate-100">
+            <!-- Login Form -->
+            <div id="login-view">
+                <h1 class="text-2xl font-bold text-slate-800 mb-8 uppercase tracking-widest text-center">SSCB Login</h1>
+                <form id="login-form" class="space-y-10">
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Email Address</label>
+                        <input type="email" id="login-email" placeholder="name@company.com"
+                            class="w-full bg-[#f4f4f4] border-b-2 border-slate-300 focus:border-blue-600 p-4 text-sm outline-none transition-all placeholder:text-slate-300">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••"
+                            class="w-full bg-[#f4f4f4] border-b-2 border-slate-300 focus:border-blue-600 p-4 text-sm outline-none transition-all placeholder:text-slate-300">
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-[#0052cc] hover:bg-[#0747a6] text-white font-bold py-4 text-xs tracking-[0.15em] transition-all active:scale-[0.98] uppercase">
+                        Login
+                    </button>
+
+                    <div id="login-error"
+                        class="hidden text-red-600 text-[10px] text-center font-bold tracking-wider bg-red-50 py-3 border border-red-100 uppercase">
+                        Access Denied: Invalid Credentials</div>
+                </form>
+                <div class="text-center mt-6">
+                    <button onclick="showSignupView()"
+                        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 hover:text-blue-600 transition-colors">
+                        New here? Create an account
+                    </button>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-view" class="hidden">
+                <h1 class="text-2xl font-bold text-slate-800 mb-8 uppercase tracking-widest text-center">SSCB Sign Up</h1>
+                <form id="signup-form" class="space-y-10">
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Email Address</label>
+                        <input type="email" id="signup-email" placeholder="name@company.com"
+                            class="w-full bg-[#f4f4f4] border-b-2 border-slate-300 focus:border-emerald-600 p-4 text-sm outline-none transition-all placeholder:text-slate-300">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Password</label>
+                        <input type="password" id="signup-password" placeholder="•••••••• (min 6 characters)"
+                            class="w-full bg-[#f4f4f4] border-b-2 border-slate-300 focus:border-emerald-600 p-4 text-sm outline-none transition-all placeholder:text-slate-300">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Confirm Password</label>
+                        <input type="password" id="signup-confirm" placeholder="••••••••"
+                            class="w-full bg-[#f4f4f4] border-b-2 border-slate-300 focus:border-emerald-600 p-4 text-sm outline-none transition-all placeholder:text-slate-300">
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 text-xs tracking-[0.15em] transition-all active:scale-[0.98] uppercase">
+                        Create Account
+                    </button>
+
+                    <div id="signup-error"
+                        class="hidden text-red-600 text-[10px] text-center font-bold tracking-wider bg-red-50 py-3 border border-red-100 uppercase">
+                    </div>
+                </form>
+                <div class="text-center mt-6">
+                    <button onclick="showLoginView()"
+                        class="text-[11px] font-bold tracking-wider uppercase text-slate-500 hover:text-blue-600 transition-colors">
+                        Already have an account? Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header
+            class="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 shrink-0 sticky top-0 z-40 relative">
+            <div class="flex items-center gap-3 z-10">
+                <!-- Menu Toggle -->
+                <button id="menu-toggle" onclick="toggleSidebar()" class="text-slate-600 hover:text-indigo-600 p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <h1 id="header-title" class="text-lg font-bold text-slate-800">Accounts</h1>
+            </div>
+
+            <!-- Global Date Range (Centered) -->
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-1 shadow-sm">
+                    <!-- Previous Month Button -->
+                    <button onclick="goToPrevMonth()"
+                        class="p-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded transition-colors"
+                        title="Previous Month">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                    </button>
+                    <div class="flex items-center gap-1 px-2 border-r border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">From</span>
+                        <input type="date" id="global-date-start"
+                            class="text-xs border-none bg-transparent font-bold text-slate-700 focus:ring-0 p-0 w-[100px]">
+                    </div>
+                    <div class="flex items-center gap-1 px-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">To</span>
+                        <input type="date" id="global-date-end"
+                            class="text-xs border-none bg-transparent font-bold text-slate-700 focus:ring-0 p-0 w-[100px]">
+                    </div>
+                    <!-- Next Month Button -->
+                    <button onclick="goToNextMonth()"
+                        class="p-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded transition-colors"
+                        title="Next Month">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                            </path>
+                        </svg>
+                    </button>
+                    <button onclick="refreshCurrentModule()"
+                        class="p-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-colors"
+                        title="Apply Date Range">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Last Accounts Checked (header, only shown on Dashboard 1) -->
+            <div id="last-checked-control" class="hidden items-center gap-1 bg-emerald-50 border border-emerald-300 rounded-lg p-1 shadow-sm z-10 mr-2">
+                <input type="date" id="dash-last-checked-display"
+                    class="text-[10px] font-mono font-bold text-emerald-800 bg-white border border-emerald-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-300 w-[120px]">
+                <button id="dash-last-checked-fix"
+                    onclick="confirmFixLastChecked()"
+                    class="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded transition-colors"
+                    title="Set / Fix Last Accounts Checked Date">
+                    Set
+                </button>
+            </div>
+
+            <!-- Global Actions -->
+            <div id="global-actions" class="hidden flex items-center gap-2 z-10">
+                <button onclick="showFilterModal()"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-bold text-[10px] uppercase transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293.707L3.293 7.293A1 1 0 013 6.586V4z">
+                        </path>
+                    </svg>
+                    Filter
+                </button>
+                <button onclick="openCurrentAnalysis()"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 font-bold text-[10px] uppercase transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                    Analysis
+                </button>
+                <button onclick="exportCurrentModule()"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-lime-50 text-lime-700 rounded-lg hover:bg-lime-100 font-bold text-[10px] uppercase transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Export
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar"
+            class="fixed left-0 top-14 bottom-0 w-64 bg-slate-900 z-50 transform -translate-x-full transition-transform duration-300 flex flex-col">
+            <nav class="p-4 space-y-2 flex-grow overflow-y-auto">
+                <button onclick="switchModule('home')" class="nav-btn w-full" data-module="home">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                    Dashboard
+                </button>
+                <button onclick="switchModule('sales')" class="nav-btn w-full" data-module="sales">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
+                    </svg>
+                    Sales
+                </button>
+                <button onclick="switchModule('lorry')" class="nav-btn w-full" data-module="lorry">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7h8m-8 4h8m-8 4h8M3 12h18M12 3v18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    Lorry Transports
+                </button>
+                <button onclick="switchModule('expenses')" class="nav-btn w-full" data-module="expenses">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                    Expenses
+                </button>
+                <button onclick="switchModule('production')" class="nav-btn w-full" data-module="production">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
+                    </svg>
+                    Production Wages
+                </button>
+
+                <!-- Separator -->
+                <div class="border-t border-slate-700 my-3"></div>
+
+                <button onclick="switchModule('home2')" class="nav-btn w-full" data-module="home2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                    Dashboard 2
+                </button>
+                <button onclick="switchModule('expenses2')" class="nav-btn w-full" data-module="expenses2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                    Expenses 2
+                </button>
+                <button onclick="switchModule('transportwages')" class="nav-btn w-full" data-module="transportwages">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    Transport Wages
+                </button>
+
+                <!-- Logout moved inside nav for scrollable behavior -->
+                <div class="pt-4 border-t border-slate-800 mt-4">
+                    <button onclick="logout()"
+                        class="flex items-center gap-3 w-full p-3 text-slate-400 hover:text-white hover:bg-red-600/20 rounded-lg transition-all group">
+                        <svg class="w-5 h-5 group-hover:text-red-500" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                            </path>
+                        </svg>
+                        <span class="font-medium text-sm">Logout</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow overflow-hidden">
+
+            <!-- MODULE: Dashboard (Home) -->
+            <div id="module-home" class="h-full overflow-auto p-4 bg-gray-100">
+                <div class="max-w-7xl mx-auto space-y-4 pb-20">
+
+                    <!-- Top Row: Profit Summary -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Current Profit (Realized) -->
+                        <div
+                            class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-5 text-white shadow-lg">
+                            <div class="text-[10px] font-bold uppercase opacity-80 tracking-wider">Current Profit (Cash in
+                                Hand)</div>
+                            <div id="dash-realized-profit" class="text-4xl font-mono font-bold mt-2">₹0</div>
+                            <div class="text-[10px] opacity-60 mt-2">Paid Sales + Lorry Profit - Expenses - Wages</div>
+                        </div>
+
+                        <!-- Unpaid Amount -->
+                        <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-5 text-white shadow-lg">
+                            <div class="text-[10px] font-bold uppercase opacity-80 tracking-wider">Unpaid / Pending Amount
+                            </div>
+                            <div id="dash-unpaid-amount" class="text-4xl font-mono font-bold mt-2">₹0</div>
+                            <div class="text-[10px] opacity-60 mt-2">Total Sales - Paid Sales</div>
+                        </div>
+
+                        <!-- Total Projected Profit -->
+                        <div
+                            class="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl p-5 text-white shadow-lg">
+                            <div class="text-[10px] font-bold uppercase opacity-80 tracking-wider">Total Profit (Incl.
+                                Unpaid)</div>
+                            <div id="dash-total-profit" class="text-4xl font-mono font-bold mt-2">₹0</div>
+                            <div class="text-[10px] opacity-60 mt-2">Current Profit + Unpaid Amount</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 1: Sales -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Total Sales</div>
+                            <div id="dash-total-sales" class="text-xl font-mono font-bold text-emerald-600">₹0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Paid Sales</div>
+                            <div id="dash-paid-sales" class="text-xl font-mono font-bold text-blue-600">₹0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-amber-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Unpaid Sales</div>
+                            <div id="dash-unpaid-sales" class="text-xl font-mono font-bold text-yellow-500">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Lorry Others (Buy, Sold, Profit) - Swapped with Self Use -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Lorry: Buy (Others)</div>
+                            <div id="dash-lorry-buy" class="text-xl font-mono font-bold text-black">₹0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Lorry: Sold (Others)</div>
+                            <div id="dash-lorry-sold" class="text-xl font-mono font-bold text-black">₹0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-green-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Lorry: Profit (Others)</div>
+                            <div id="dash-lorry-profit" class="text-xl font-mono font-bold text-green-600">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Lorry Self Use - Swapped with Others -->
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-sky-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Lorry: Self Use (Value)</div>
+                            <div id="dash-lorry-self" class="text-xl font-mono font-bold text-red-600">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Production Wages + Expenses -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-teal-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Production Wages</div>
+                            <div id="dash-production-wages" class="text-xl font-mono font-bold text-red-600">₹0</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-red-100 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">Total Expenses</div>
+                            <div id="dash-total-expenses" class="text-xl font-mono font-bold text-red-600">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- Expenses Breakdown Table Only -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="bg-slate-50 px-4 py-2 border-b border-gray-200">
+                            <h3 class="font-bold text-slate-700 text-xs uppercase">Expenses Details</h3>
+                        </div>
+                        <div id="dash-expenses-breakdown" class="p-0">
+                            <!-- Table injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE: Sales -->
+            <div id="module-sales" class="hidden h-full flex flex-col overflow-hidden">
+                <!-- Sales Header -->
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-4">
+                        <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-3 h-3 bg-rose-500 rounded-full"></span>
+                            Cement Bricks Sales
+                        </h2>
+                        <!-- Slide Toggle -->
+                        <div class="flex bg-slate-200 rounded-lg p-1 gap-1">
+                            <button onclick="switchSalesView('entries')" id="sales-view-entries"
+                                class="px-4 py-1.5 text-xs font-bold rounded-md transition-all bg-rose-500 text-white shadow-sm">
+                                Sale
+                            </button>
+                            <button onclick="switchSalesView('stocks')" id="sales-view-stocks"
+                                class="px-4 py-1.5 text-xs font-bold rounded-md transition-all text-slate-600 hover:text-slate-800">
+                                Stocks
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sales Search Bar (Header Area) -->
+                    <div id="sales-search-bar" class="flex items-center gap-3">
+                        <div class="relative w-64">
+                            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+                            </svg>
+                            <input type="text" id="sales-search-input" placeholder="Search customer, place..."
+                                oninput="onSalesSearch()"
+                                class="w-full pl-8 pr-7 py-1.5 text-xs font-medium border border-slate-300 rounded-lg bg-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 placeholder:text-slate-400 transition-all">
+                            <button id="sales-search-clear" onclick="clearSalesSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 hidden text-base leading-none">×</button>
+                        </div>
+                        <span id="sales-search-info" class="text-[10px] text-slate-500 font-bold whitespace-nowrap"></span>
+                    </div>
+
+                    <div id="sales-entries-actions" class="flex gap-2">
+                        <button onclick="showManageDrivers()" class="btn-secondary">Drivers</button>
+                        <button onclick="showManageBricks()" class="btn-secondary">Bricks</button>
+                        <button onclick="showSalesModal()" class="btn-primary bg-rose-600 hover:bg-rose-700">+ Add
+                            Entry</button>
+                    </div>
+                    <div id="sales-stocks-actions" class="hidden flex gap-2">
+                        <button onclick="closeStocksMonth()"
+                            class="btn-secondary border-violet-300 text-violet-700 hover:bg-violet-50">Close
+                            Month</button>
+                        <button onclick="showStockAdjustmentModal()"
+                            class="btn-primary bg-emerald-600 hover:bg-emerald-700">+ Add Entry</button>
+                    </div>
+                </div>
+
+
+                <!-- Sales Entries View -->
+                <div id="sales-entries-view" class="flex-grow overflow-auto p-4 bg-gray-100 list-container">
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">#</th>
+                                    <th class="py-2.5 px-3 text-left">Date</th>
+                                    <th class="py-2.5 px-3 text-left">Place</th>
+                                    <th class="py-2.5 px-3 text-left">Customer</th>
+                                    <th class="py-2.5 px-3 text-left">Driver</th>
+                                    <th class="py-2.5 px-3 text-left">Type</th>
+                                    <th class="py-2.5 px-3 text-right">Qty</th>
+                                    <th class="py-2.5 px-3 text-right">Rate</th>
+                                    <th class="py-2.5 px-3 text-right">Normal Amt</th>
+                                    <th class="py-2.5 px-3 text-right">T.Rate</th>
+                                    <th class="py-2.5 px-3 text-right">Trans Amt</th>
+                                    <th class="py-2.5 px-3 text-right">Total</th>
+                                    <th class="py-2.5 px-3 text-center">Status</th>
+                                    <th class="py-2.5 px-3 text-center w-[100px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="sales-empty"
+                        class="hidden text-center text-gray-400 py-12 text-sm uppercase tracking-wide">No
+                        records for
+                        this month</div>
+                </div>
+
+                <!-- Stocks Dashboard View -->
+                <div id="sales-stocks-view" class="hidden flex-grow overflow-auto p-4 bg-gray-100">
+                    <div class="max-w-5xl mx-auto space-y-4 pb-20">
+
+                        <!-- Stock by Brick Type Table -->
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="bg-slate-50 px-5 py-3 border-b">
+                                <h3 class="font-bold text-slate-700 text-sm uppercase">Stock by Brick Type</h3>
+                            </div>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                    <tr>
+                                        <th class="py-2.5 px-4 text-left">Brick Type</th>
+                                        <th class="py-2.5 px-4 text-right">Production IN</th>
+                                        <th class="py-2.5 px-4 text-right">Sales OUT</th>
+                                        <th class="py-2.5 px-4 text-right">Manual IN</th>
+                                        <th class="py-2.5 px-4 text-right">Manual OUT</th>
+                                        <th class="py-2.5 px-4 text-right font-bold">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stocks-table-body" class="divide-y divide-gray-100">
+                                </tbody>
+                            </table>
+                            <div id="stocks-empty" class="hidden text-center text-gray-400 py-8 text-sm">No stock data
+                            </div>
+                        </div>
+
+                        <!-- Manual Adjustments Table -->
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="bg-amber-50 px-5 py-3 border-b">
+                                <h3 class="font-bold text-amber-700 text-sm uppercase">Manual Adjustments (This Month)
+                                </h3>
+                            </div>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                    <tr>
+                                        <th class="py-2.5 px-4 text-left">Date</th>
+                                        <th class="py-2.5 px-4 text-left">Brick Type</th>
+                                        <th class="py-2.5 px-4 text-center">Type</th>
+                                        <th class="py-2.5 px-4 text-right">Quantity</th>
+                                        <th class="py-2.5 px-4 text-left">Note</th>
+                                        <th class="py-2.5 px-4 text-center w-[80px]">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stocks-adjustments-body" class="divide-y divide-gray-100">
+                                </tbody>
+                            </table>
+                            <div id="stocks-adjustments-empty" class="hidden text-center text-gray-400 py-6 text-sm">No
+                                manual adjustments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE: Lorry -->
+            <div id="module-lorry" class="hidden h-full flex flex-col overflow-hidden">
+                <!-- Lorry Header -->
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
+                        Lorry Transports
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="showManageLorryProducts()" class="btn-secondary">Products</button>
+                        <button onclick="showManageLorryDrivers()" class="btn-secondary">Drivers</button>
+                        <button onclick="showManageLorryPlaces()" class="btn-secondary">Places</button>
+                        <button onclick="showLorryModal()" class="btn-primary bg-amber-600 hover:bg-amber-700">+ Add
+                            Entry</button>
+                    </div>
+                </div>
+                <!-- Lorry Table -->
+                <div class="flex-grow overflow-auto p-4 bg-gray-100 list-container">
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">#</th>
+                                    <th class="py-2.5 px-3 text-left">Date</th>
+                                    <th class="py-2.5 px-3 text-left">Product</th>
+                                    <th class="py-2.5 px-3 text-left">From</th>
+                                    <th class="py-2.5 px-3 text-left">Type</th>
+                                    <th class="py-2.5 px-3 text-left">Driver</th>
+                                    <th class="py-2.5 px-3 text-left">To</th>
+                                    <th class="py-2.5 px-3 text-right">Weight</th>
+                                    <th class="py-2.5 px-3 text-right">Brought ₹</th>
+                                    <th class="py-2.5 px-3 text-right">Sold ₹</th>
+                                    <th class="py-2.5 px-3 text-right">Profit ₹</th>
+                                    <th class="py-2.5 px-3 text-center w-[100px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lorry-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="lorry-empty"
+                        class="hidden text-center text-gray-400 py-12 text-sm uppercase tracking-wide">No
+                        records for
+                        this month</div>
+                </div>
+            </div>
+
+            <!-- MODULE: Expenses -->
+            <div id="module-expenses" class="hidden h-full flex flex-col overflow-hidden">
+                <!-- Expenses Header -->
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-violet-500 rounded-full"></span>
+                        Expenses
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="showManageCategories()" class="btn-secondary">Categories</button>
+                        <button onclick="showExpensesModal()" class="btn-primary bg-violet-600 hover:bg-violet-700">+
+                            Add Entry</button>
+                    </div>
+                </div>
+                <!-- Expenses Table -->
+                <div class="flex-grow overflow-auto p-4 bg-gray-100 list-container">
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">#</th>
+                                    <th class="py-2.5 px-3 text-left">Date</th>
+                                    <th class="py-2.5 px-3 text-left">Category</th>
+                                    <th class="py-2.5 px-3 text-left">Name</th>
+                                    <th class="py-2.5 px-3 text-left">Comment</th>
+                                    <th class="py-2.5 px-3 text-right">Amount ₹</th>
+                                    <th class="py-2.5 px-3 text-center w-[100px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="expenses-empty"
+                        class="hidden text-center text-gray-400 py-12 text-sm uppercase tracking-wide">No
+                        records for
+                        this month</div>
+                </div>
+            </div>
+
+            <!-- MODULE: Production Wages -->
+            <div id="module-production" class="hidden h-full flex flex-col overflow-hidden">
+                <!-- Production Header -->
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-teal-500 rounded-full"></span>
+                        Production Wages
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="showManageProductionEmployees()" class="btn-secondary">Manage
+                            Employees</button>
+                        <button onclick="showManageProductionBricks()" class="btn-secondary">Manage Bricks</button>
+                        <button onclick="showProductionModal()" class="btn-primary bg-teal-600 hover:bg-teal-700">+ Add
+                            Entry</button>
+                    </div>
+                </div>
+                <!-- Production Table -->
+                <div class="flex-grow overflow-auto p-4 bg-gray-100 list-container">
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">S.No</th>
+                                    <th class="py-2.5 px-3 text-left">Date</th>
+                                    <th class="py-2.5 px-3 text-left">Production</th>
+                                    <th class="py-2.5 px-3 text-left">Employee Wages</th>
+                                    <th class="py-2.5 px-3 text-right">Other ₹</th>
+                                    <th class="py-2.5 px-3 text-right">Total ₹</th>
+                                    <th class="py-2.5 px-3 text-center w-[100px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="production-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="production-empty"
+                        class="hidden text-center text-gray-400 py-12 text-sm uppercase tracking-wide">No
+                        records for
+                        this month</div>
+                </div>
+            </div>
+
+            <!-- MODULE: Dashboard 2 -->
+            <div id="module-home2" class="hidden h-full flex flex-col overflow-hidden">
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-indigo-500 rounded-full"></span>
+                        Dashboard 2
+                    </h2>
+                </div>
+                <div class="flex-grow overflow-auto p-4 bg-gray-100">
+                    <div class="max-w-7xl mx-auto space-y-4 pb-20">
+                        <!-- Top Row: Profit Summary (same as Dashboard 1) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Current Profit (Realized) -->
+                            <div
+                                class="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-xl p-5 text-white shadow-lg">
+                                <div class="text-xs font-bold uppercase opacity-80 tracking-wider">Current Profit (Cash
+                                    in
+                                    Hand)</div>
+                                <div id="d2-realized-profit" class="text-4xl font-mono font-bold mt-2">₹0</div>
+                                <div class="text-[10px] opacity-60 mt-2">Paid Transport − Expenses 2 − Transport Wages − Driver Salary</div>
+                            </div>
+
+                            <!-- Unpaid Amount -->
+                            <div
+                                class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-5 text-white shadow-lg">
+                                <div class="text-xs font-bold uppercase opacity-80 tracking-wider">Unpaid / Pending
+                                    Transport
+                                </div>
+                                <div id="d2-unpaid-amount" class="text-4xl font-mono font-bold mt-2">₹0</div>
+                                <div class="text-[10px] opacity-60 mt-2">Total Transport − Paid Transport</div>
+                            </div>
+
+                            <!-- Total Projected Profit -->
+                            <div
+                                class="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl p-5 text-white shadow-lg">
+                                <div class="text-xs font-bold uppercase opacity-80 tracking-wider">Total Profit (Incl.
+                                    Unpaid)</div>
+                                <div id="d2-total-profit" class="text-4xl font-mono font-bold mt-2">₹0</div>
+                                <div class="text-[10px] opacity-60 mt-2">Total Transport − Expenses 2 − Transport Wages − Driver Salary</div>
+                            </div>
+                        </div>
+
+                        <!-- Row 1: Transport Totals -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-sky-100 shadow-sm">
+                                <div class="text-[10px] font-bold text-sky-600 uppercase">Total Transport</div>
+                                <div id="d2-transport-rate-detail" class="text-xl font-mono font-bold text-sky-700">₹0
+                                </div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-emerald-200 shadow-sm">
+                                <div class="text-[10px] font-bold text-emerald-600 uppercase">Paid Transport</div>
+                                <div id="d2-paid-transport" class="text-xl font-mono font-bold text-emerald-700">₹0
+                                </div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-amber-100 shadow-sm">
+                                <div class="text-[10px] font-bold text-amber-600 uppercase">Unpaid Transport</div>
+                                <div id="d2-unpaid-transport" class="text-xl font-mono font-bold text-amber-700">₹0
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Expenses 2 + Transport Wages -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
+                                <div class="text-[10px] font-bold text-purple-600 uppercase">Expenses 2</div>
+                                <div id="d2-expenses2" class="text-xl font-mono font-bold text-purple-700">₹0</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-orange-100 shadow-sm">
+                                <div class="text-[10px] font-bold text-orange-600 uppercase">Transport Wages</div>
+                                <div id="d2-transport-wages" class="text-xl font-mono font-bold text-orange-700">₹0
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2b: Driver Salary (calculated) -->
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-rose-100 shadow-sm">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="text-[10px] font-bold text-rose-600 uppercase">Driver Salary</div>
+                                        <div id="d2-driver-salary"
+                                            class="text-xl font-mono font-bold text-rose-700">₹0</div>
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 text-right max-w-[60%]">Σ(qty ÷ driver factor) per brick type
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category-wise Expenses 2 Breakdown -->
+                        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                            <div class="bg-purple-50 px-5 py-3 border-b">
+                                <h3 class="text-sm font-bold text-purple-800 uppercase">Expenses 2 by Category</h3>
+                            </div>
+                            <div id="d2-expenses2-by-category" class="p-4">
+                                <div class="text-gray-400 text-sm text-center py-4">Loading...</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE: Expenses 2 -->
+            <div id="module-expenses2" class="hidden h-full flex flex-col overflow-hidden">
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+                        Expenses 2
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="showManageCategories2()" class="btn-secondary">Manage Categories</button>
+                        <button onclick="showExpenses2Modal()" class="btn-primary bg-purple-600 hover:bg-purple-700">+
+                            Add Expense</button>
+                    </div>
+                </div>
+                <div class="flex-grow overflow-auto p-4 bg-gray-100 list-container">
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">S.No</th>
+                                    <th class="py-2.5 px-3 text-left">Date</th>
+                                    <th class="py-2.5 px-3 text-left">Category</th>
+                                    <th class="py-2.5 px-3 text-left">Name</th>
+                                    <th class="py-2.5 px-3 text-left">Comment</th>
+                                    <th class="py-2.5 px-3 text-right">Amount ₹</th>
+                                    <th class="py-2.5 px-3 text-center w-[100px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenses2-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="expenses2-empty"
+                        class="hidden text-center text-gray-400 py-12 text-sm uppercase tracking-wide">No
+                        records for
+                        this month</div>
+                </div>
+            </div>
+
+            <!-- MODULE: Transport Wages -->
+            <div id="module-transportwages" class="hidden h-full flex flex-col overflow-hidden">
+                <div class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+                        Transport Wages
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="showManageTransportEmployees()" class="btn-secondary">Manage Employees</button>
+                        <button onclick="showTransportWagesModal()"
+                            class="btn-primary bg-orange-600 hover:bg-orange-700">+ Add
+                            Entry</button>
+                    </div>
+                </div>
+                <div class="flex-grow overflow-auto p-4 bg-gray-100 list-container">
+                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-slate-600 font-bold">
+                                <tr>
+                                    <th class="py-2.5 px-3 text-center w-12">S.No</th>
+                                    <th class="py-2.5 px-3 text-left">Date</th>
+                                    <th class="py-2.5 px-3 text-left">Employee Wages</th>
+                                    <th class="py-2.5 px-3 text-right">Total ₹</th>
+                                    <th class="py-2.5 px-3 text-center w-[100px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transportwages-table-body" class="divide-y divide-gray-100">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="transportwages-empty"
+                        class="hidden text-center text-gray-400 py-12 text-sm uppercase tracking-wide">No records for
+                        this month</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Sales Entry Modal -->
+    <div id="sales-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-lg">
+            <div class="modal-header bg-rose-600">
+                <h3 id="sales-modal-title">Add Sales Entry</h3>
+                <button onclick="closeSalesModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="sales-form" class="p-5 space-y-4">
+                <input type="hidden" id="sales-edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="sales-date" class="ledger-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">Place</label>
+                        <input type="text" id="sales-place" class="ledger-input w-full" placeholder="Location">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Customer</label>
+                        <input type="text" id="sales-customer" class="ledger-input w-full" placeholder="Name">
+                    </div>
+                    <div>
+                        <label class="form-label">Driver</label>
+                        <select id="sales-driver" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="form-label">Vehicle</label>
+                        <input type="text" id="sales-vehicle" class="ledger-input w-full uppercase" placeholder="XX00">
+                    </div>
+                    <div>
+                        <label class="form-label">Brick Type</label>
+                        <select id="sales-brick-type" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="sales-quantity" class="ledger-input w-full text-right font-mono"
+                            placeholder="">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="form-label">Rate ₹</label>
+                        <input type="number" step="0.01" id="sales-rate"
+                            class="ledger-input w-full text-right font-mono" placeholder="">
+                    </div>
+                    <div>
+                        <label class="form-label">Normal Amt ₹</label>
+                        <input type="number" id="sales-normal-amt"
+                            class="ledger-input w-full text-right font-mono bg-rose-50 font-bold text-rose-600"
+                            readonly>
+                    </div>
+                    <div>
+                        <label class="form-label">T.Rate ₹</label>
+                        <input type="number" step="0.01" id="sales-transport-rate"
+                            class="ledger-input w-full text-right font-mono bg-sky-50" placeholder="0"
+                            oninput="calcSalesTotal()">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="form-label">Trans Amt ₹</label>
+                        <input type="number" id="sales-trans-amt"
+                            class="ledger-input w-full text-right font-mono bg-sky-50 font-bold text-sky-600" readonly>
+                    </div>
+                    <div>
+                        <label class="form-label">Total ₹</label>
+                        <input type="number" id="sales-total"
+                            class="ledger-input w-full text-right font-mono bg-indigo-50 font-bold text-indigo-700"
+                            readonly>
+                    </div>
+                    <div>
+                        <label class="form-label">Payment</label>
+                        <div class="flex gap-3 h-[34px] items-center">
+                            <label class="flex items-center gap-1 cursor-pointer">
+                                <input type="radio" name="sales-payment" value="Paid" checked class="accent-green-600">
+                                <span class="text-xs font-bold text-green-700">PAID</span>
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer">
+                                <input type="radio" name="sales-payment" value="Pending" class="accent-red-500">
+                                <span class="text-xs font-bold text-red-600">DUE</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeSalesModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-rose-600 hover:bg-rose-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lorry Entry Modal -->
+
+    <!-- Stock Adjustment Modal -->
+    <div id="stock-adjustment-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-md">
+            <div class="modal-header bg-amber-600">
+                <h3 id="stock-adjustment-modal-title">Add Stock Adjustment</h3>
+                <button onclick="closeStockAdjustmentModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="stock-adjustment-form" class="p-5 space-y-4">
+                <input type="hidden" id="stock-adjustment-edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="stock-adjustment-date" class="ledger-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">Brick Type</label>
+                        <select id="stock-adjustment-brick-type" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                    <label class="form-label mb-2">Adjustment Type</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="stock-adjustment-type" value="IN" checked class="accent-teal-600">
+                            <span class="text-sm font-bold text-teal-700">IN (Add Stock)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="stock-adjustment-type" value="OUT" class="accent-rose-600">
+                            <span class="text-sm font-bold text-rose-700">OUT (Remove Stock)</span>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Quantity (Bricks)</label>
+                    <input type="number" id="stock-adjustment-quantity"
+                        class="ledger-input w-full text-right font-mono text-lg" placeholder="0">
+                </div>
+                <div>
+                    <label class="form-label">Note (Optional)</label>
+                    <input type="text" id="stock-adjustment-note" class="ledger-input w-full"
+                        placeholder="Reason for adjustment">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeStockAdjustmentModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-amber-600 hover:bg-amber-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="lorry-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-lg">
+            <div class="modal-header bg-amber-600">
+                <h3 id="lorry-modal-title">Add Lorry Entry</h3>
+                <button onclick="closeLorryModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="lorry-form" class="p-5 space-y-4">
+                <input type="hidden" id="lorry-edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="lorry-date" class="ledger-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">Product</label>
+                        <select id="lorry-product" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Transport Type -->
+                <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                    <label class="form-label mb-2">Transport Type</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="lorry-type" value="self" id="lorry-type-self" checked
+                                class="accent-amber-600" onchange="toggleLorryType()">
+                            <span class="text-sm font-bold text-slate-700">Self (Own Use)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="lorry-type" value="others" id="lorry-type-others"
+                                class="accent-amber-600" onchange="toggleLorryType()">
+                            <span class="text-sm font-bold text-slate-700">Others</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Place From</label>
+                        <select id="lorry-place" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Driver</label>
+                        <select id="lorry-driver" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- To Whom (Others only) -->
+                <div id="lorry-to-section" class="hidden">
+                    <label class="form-label">To Whom</label>
+                    <input type="text" id="lorry-to-whom" class="ledger-input w-full" placeholder="Customer/Party name">
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="form-label">Weight (Tons)</label>
+                        <input type="number" step="0.001" id="lorry-weight"
+                            class="ledger-input w-full text-right font-mono" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="form-label">Per Ton Price ₹</label>
+                        <input type="number" step="0.01" id="lorry-per-ton"
+                            class="ledger-input w-full text-right font-mono" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="form-label">Total Brought ₹</label>
+                        <input type="number" step="0.01" id="lorry-brought"
+                            class="ledger-input w-full text-right font-mono" placeholder="0">
+                    </div>
+                </div>
+                <!-- Sold & Profit (Others only) -->
+                <div id="lorry-sold-section" class="hidden grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Total Sold ₹</label>
+                        <input type="number" step="0.01" id="lorry-sold"
+                            class="ledger-input w-full text-right font-mono bg-blue-50" placeholder="0">
+                    </div>
+                    <div>
+                        <label class="form-label">Profit ₹</label>
+                        <input type="number" step="0.01" id="lorry-profit"
+                            class="ledger-input w-full text-right font-mono bg-green-50 text-green-700 font-bold"
+                            placeholder="0">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeLorryModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-amber-600 hover:bg-amber-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expenses Entry Modal -->
+    <div id="expenses-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-md">
+            <div class="modal-header bg-violet-600">
+                <h3 id="expenses-modal-title">Add Expense</h3>
+                <button onclick="closeExpensesModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="expenses-form" class="p-5 space-y-4">
+                <input type="hidden" id="expenses-edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="expenses-date" class="ledger-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">Category</label>
+                        <select id="expenses-category" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Expense Name</label>
+                    <input type="text" id="expenses-name" class="ledger-input w-full" placeholder="Description">
+                </div>
+                <div>
+                    <label class="form-label">Comment (Optional)</label>
+                    <input type="text" id="expenses-comment" class="ledger-input w-full" placeholder="Additional notes">
+                </div>
+                <div>
+                    <label class="form-label">Amount ₹</label>
+                    <input type="number" step="0.01" id="expenses-amount"
+                        class="ledger-input w-full text-right font-mono text-lg" placeholder="">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeExpensesModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-violet-600 hover:bg-violet-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expenses 2 Entry Modal -->
+    <div id="expenses2-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-md">
+            <div class="modal-header bg-purple-600">
+                <h3 id="expenses2-modal-title">Add Expense (2)</h3>
+                <button onclick="closeExpenses2Modal()" class="modal-close">&times;</button>
+            </div>
+            <form id="expenses2-form" class="p-5 space-y-4">
+                <input type="hidden" id="expenses2-edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="expenses2-date" class="ledger-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">Category</label>
+                        <select id="expenses2-category" class="ledger-input w-full">
+                            <option value="">- Select -</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">Expense Name</label>
+                    <input type="text" id="expenses2-name" class="ledger-input w-full" placeholder="Description">
+                </div>
+                <div>
+                    <label class="form-label">Comment (Optional)</label>
+                    <input type="text" id="expenses2-comment" class="ledger-input w-full"
+                        placeholder="Additional notes">
+                </div>
+                <div>
+                    <label class="form-label">Amount ₹</label>
+                    <input type="number" step="0.01" id="expenses2-amount"
+                        class="ledger-input w-full text-right font-mono text-lg" placeholder="">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeExpenses2Modal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-purple-600 hover:bg-purple-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transport Wages Entry Modal -->
+    <div id="transportwages-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-lg max-h-[90vh] flex flex-col">
+            <div class="modal-header bg-orange-600 shrink-0">
+                <h3 id="transportwages-modal-title">Add Transport Wages Entry</h3>
+                <button onclick="closeTransportWagesModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="transportwages-form" class="flex flex-col flex-grow overflow-hidden">
+                <div class="p-5 space-y-4 overflow-y-auto flex-grow">
+                    <input type="hidden" id="transportwages-edit-id">
+                    <!-- Date -->
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="transportwages-date" class="ledger-input w-full">
+                    </div>
+                    <!-- Employee Wages (Dynamically populated) -->
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <label class="form-label mb-3">Employee Wages</label>
+                        <div id="transportwages-employees-container" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    <!-- Total Display -->
+                    <div class="bg-orange-100 p-4 rounded-lg border border-orange-300">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-orange-800">Total:</span>
+                            <span id="transportwages-total-display"
+                                class="text-2xl font-mono font-bold text-orange-700">₹0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 p-4 border-t bg-white shrink-0">
+                    <button type="button" onclick="closeTransportWagesModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-orange-600 hover:bg-orange-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="production-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-lg max-h-[90vh] flex flex-col">
+            <div class="modal-header bg-teal-600 shrink-0">
+                <h3 id="production-modal-title">Add Production Wages Entry</h3>
+                <button onclick="closeProductionModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="production-form" class="flex flex-col flex-grow overflow-hidden">
+                <div class="p-5 space-y-4 overflow-y-auto flex-grow">
+                    <input type="hidden" id="production-edit-id">
+                    <!-- Date -->
+                    <div>
+                        <label class="form-label">Date</label>
+                        <input type="date" id="production-date" class="ledger-input w-full">
+                    </div>
+                    <!-- Production (Bricks) -->
+                    <div class="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                        <label class="form-label mb-3">Production (Punches)</label>
+                        <div id="production-bricks-container" class="space-y-2">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    <!-- Rate -->
+                    <div>
+                        <label class="form-label">Rate ₹ (per punch)</label>
+                        <input type="number" step="0.01" id="production-rate"
+                            class="ledger-input w-full text-right font-mono" placeholder="0"
+                            oninput="calcProductionTotal()">
+                    </div>
+                    <!-- Employee Selection -->
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <label class="form-label mb-3">Select Present Employees</label>
+                        <div id="production-employees-container" class="space-y-2 max-h-32 overflow-y-auto">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    <!-- Other Wages -->
+                    <div>
+                        <label class="form-label">Other Wages ₹</label>
+                        <input type="number" step="0.01" id="production-other"
+                            class="ledger-input w-full text-right font-mono" placeholder="0"
+                            oninput="calcProductionTotal()">
+                    </div>
+                    <!-- Total Display -->
+                    <div class="bg-teal-100 p-4 rounded-lg border border-teal-300">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-teal-800">Total:</span>
+                            <span id="production-total-display"
+                                class="text-2xl font-mono font-bold text-teal-700">₹0</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2 text-sm">
+                            <span class="text-teal-700">Per Employee:</span>
+                            <span id="production-per-employee" class="font-mono font-bold text-teal-600">₹0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 p-4 border-t bg-white shrink-0">
+                    <button type="button" onclick="closeProductionModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary bg-teal-600 hover:bg-teal-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Modal Template -->
+    <div id="manage-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-sm">
+            <div class="modal-header bg-slate-700">
+                <h3 id="manage-modal-title">Manage Items</h3>
+                <button onclick="closeManageModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="p-4">
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="manage-new-item" class="ledger-input flex-grow" placeholder="New item name">
+                    <button onclick="saveManageItem()"
+                        class="btn-primary bg-blue-600 hover:bg-blue-700 px-4">Add</button>
+                </div>
+                <div id="manage-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div id="filter-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-md">
+            <div class="modal-header bg-slate-700">
+                <h3 id="filter-modal-title">Filter</h3>
+                <button onclick="closeFilterModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <!-- Date Range -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">From Date</label>
+                        <input type="date" id="filter-from-date" class="ledger-input w-full">
+                    </div>
+                    <div>
+                        <label class="form-label">To Date</label>
+                        <input type="date" id="filter-to-date" class="ledger-input w-full">
+                    </div>
+                </div>
+                <!-- Dynamic Filters Container -->
+                <div id="filter-options-container" class="space-y-3">
+                    <!-- Populated dynamically based on module -->
+                </div>
+                <div class="flex justify-between gap-2 pt-3 border-t">
+                    <button type="button" onclick="clearFilters()" class="btn-secondary">Clear</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closeFilterModal()" class="btn-secondary">Cancel</button>
+                        <button type="button" onclick="applyFilters()"
+                            class="btn-primary bg-slate-700 hover:bg-slate-800">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Modal -->
+    <div id="analysis-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-4xl h-[85vh] flex flex-col">
+            <div id="analysis-modal-header" class="modal-header bg-indigo-700">
+                <h3 id="analysis-modal-title">Analysis</h3>
+                <button onclick="closeAnalysisModal()" class="modal-close">&times;</button>
+            </div>
+            <!-- Date Range in Analysis -->
+            <div class="bg-gray-100 px-5 py-3 border-b flex items-center gap-4 shrink-0">
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-slate-600 uppercase">From</label>
+                    <input type="date" id="analysis-from-date" class="ledger-input text-sm" onchange="runAnalysis()">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-slate-600 uppercase">To</label>
+                    <input type="date" id="analysis-to-date" class="ledger-input text-sm" onchange="runAnalysis()">
+                </div>
+                <button onclick="runAnalysis()"
+                    class="btn-primary bg-indigo-600 hover:bg-indigo-700 text-xs px-3 py-1.5">Apply</button>
+                <button onclick="showPrintOptionsModal()"
+                    class="flex items-center gap-1 px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                        </path>
+                    </svg>
+                    Print PDF
+                </button>
+            </div>
+            <div id="analysis-content" class="flex-grow overflow-auto p-6 bg-gray-50 space-y-6 list-container">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Options Modal -->
+    <div id="print-options-modal" class="modal-overlay hidden">
+        <div class="modal-content max-w-md">
+            <div class="modal-header bg-slate-700">
+                <h3>Print PDF Options</h3>
+                <button onclick="closePrintOptionsModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="text-sm text-slate-600 mb-3">Select sections to include in PDF:</div>
+                <div id="print-sections-container" class="space-y-2">
+                    <!-- Populated dynamically based on analysis type -->
+                </div>
+                <div class="flex justify-between gap-2 pt-3 border-t">
+                    <button type="button" onclick="toggleAllPrintSections()"
+                        class="text-xs text-slate-500 hover:text-slate-700 font-medium">Toggle All</button>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="closePrintOptionsModal()" class="btn-secondary">Cancel</button>
+                        <button type="button" onclick="printAnalysisToPDF()"
+                            class="btn-primary bg-slate-700 hover:bg-slate-800">Print PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
